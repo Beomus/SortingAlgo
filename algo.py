@@ -1,7 +1,7 @@
 import time
 import random
 from abc import ABCMeta, abstractmethod
-from typing import Type
+
 
 class Algorithm(metaclass=ABCMeta):
     def __init__(self, name):
@@ -13,9 +13,9 @@ class Algorithm(metaclass=ABCMeta):
         visualizer.update(self, swap1, swap2)
 
     def run(self):
-        self.start_time = time.time()
+        start_time = time.time()
         self.algorithm()
-        time_elapsed = time.time() - self.start_time
+        time_elapsed = time.time() - start_time
         return self.array, time_elapsed
 
     @abstractmethod
