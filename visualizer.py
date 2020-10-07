@@ -60,5 +60,5 @@ def main(args):
 
 
 if __name__ == '__main__':
-    sys.argv.append('SelectionSort')
+    sys.argv.append('MergeSort')
     main(sys.argv)
