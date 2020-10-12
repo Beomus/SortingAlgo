@@ -10,8 +10,9 @@ class Algorithm(metaclass=ABCMeta):
         self.start_time = None
 
     def update_display(self, swap1=None, swap2=None):
-        import visualizer
-        visualizer.update(self, swap1, swap2)
+        from visualizer import Visualizer
+        viz = Visualizer()
+        viz.visualize(self, swap1, swap2)
 
     def run(self):
         self.start_time = time.time()
