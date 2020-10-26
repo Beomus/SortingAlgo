@@ -4,7 +4,7 @@ import sys
 import pygame
 
 WIDTH = 1024
-HEIGHT = 512 + 100
+HEIGHT = 512
 
 FONT = 'Arial Black'
 
@@ -37,7 +37,7 @@ colors = Colors()
 
 
 class Button:
-    def __init__(self, app, color, x, y, width, height, text=None):
+    def __init__(self, app, color, x, y, width, height, text=None, text_size=None):
         self.app = app
         self.color = color
         self.x = x
@@ -45,17 +45,19 @@ class Button:
         self.width = width
         self.height = height
         self.text = text
+        self.text_size = text_size
+        self.text_color = colors.SPRINGGREEN
 
     def draw_button(self, outline=None):
         if outline:
-            pygame.draw.rect(self.app.win, outline, (self.x - 2, self.y - 2, self.width + 4, self.height + 4), 0)
+            pygame.draw.rect(self.app.win, outline, (self.x - 2, self.y - 2, self.width + 4, self.height + 4), 4)
         pygame.draw.rect(self.app.win, self.color, (self.x, self.y, self.width, self.height), 0)
 
         if self.text:
-            font = pygame.font.SysFont(FONT, 12)
-            text = font.render(self.text, 1, (0, 0, 0))
-            self.app.win.blit(text, (self.x + (self.width / 2 - text.get_width() / 2),
-                                        self.y + (self.height / 2- text.get_height() / 2)))
+            font = pygame.font.SysFont(FONT, self.text_size)
+            text = font.render(self.text, 0, self.text_color)
+            self.app.win.blit(text, (self.x + int(self.width / 2 - text.get_width() / 2),
+                                        self.y + int(self.height / 2- text.get_height() / 2)))
 
     def isOver(self, pos):
         if self.x < pos[0] < self.x + self.width and self.y < pos[1] < self.y + self.height:
@@ -67,7 +69,7 @@ class Visualizer:
     def __init__(self):
         # init for pygame
         self.win = pygame.display.set_mode((WIDTH, HEIGHT))
-        self.win.fill(pygame.Color("#a48be0"))
+        self.win.fill(colors.BLACK)
         self.clock = pygame.time.Clock()
 
         # init for visualizer
@@ -76,14 +78,13 @@ class Visualizer:
         self.state = 'main'
 
         # app buttons
-        self.selection_button = Button(self, colors.WHITE, 142, 100, 100, 70, 'Selection')
-        self.bubble_button = Button(self, colors.WHITE, 302, 100, 100, 70, 'Bubble')
-        self.insertion_button = Button(self, colors.WHITE, 462, 100, 100, 70, 'Insertion')
-        self.merge_button = Button(self, colors.WHITE, 622, 100, 100, 70, 'Merge')
-        self.quick_button = Button(self, colors.WHITE, 782, 100, 100, 70, 'Quick')
+        self.selection_button = Button(self, colors.STEELBLUE, 142, 100, 100, 70, 'Selection', 18)
+        self.bubble_button = Button(self, colors.STEELBLUE, 302, 100, 100, 70, 'Bubble', 18)
+        self.insertion_button = Button(self, colors.STEELBLUE, 462, 100, 100, 70, 'Insertion', 18)
+        self.merge_button = Button(self, colors.STEELBLUE, 622, 100, 100, 70, 'Merge', 18)
+        self.quick_button = Button(self, colors.STEELBLUE, 782, 100, 100, 70, 'Quick', 18)
         
-        # TODO: add reset button here
-        self.reset_button = Button(self, colors.WHITE, 142, 200, 100, 70, 'RESET')
+        self.reset_button = Button(self, colors.STEELBLUE, 782, HEIGHT - 150, 130, 70, 'Restart', 26)
 
     ###################################################
     # MAIN LOOP
@@ -98,46 +99,72 @@ class Visualizer:
         sys.exit()
 
     ###################################################
-    # MENU EVENT
+    # DRAW BUTTONS FOR THE MENU
     ###################################################
     def sketch_menu(self):
-        self.selection_button.draw_button(colors.AQUAMARINE)
-        self.bubble_button.draw_button(colors.AQUAMARINE)
-        self.insertion_button.draw_button(colors.AQUAMARINE)
-        self.merge_button.draw_button(colors.AQUAMARINE)
-        self.quick_button.draw_button(colors.AQUAMARINE)
-        self.reset_button.draw_button(colors.AQUAMARINE)
-
+        self.win.fill(colors.BLACK)
+        self.selection_button.draw_button(colors.MINT)
+        self.bubble_button.draw_button(colors.MINT)
+        self.insertion_button.draw_button(colors.MINT)
+        self.merge_button.draw_button(colors.MINT)
+        self.quick_button.draw_button(colors.MINT)
+        # self.reset_button.draw_button(colors.AQUAMARINE)
+    
+    ###################################################
+    # MAIN FUNCTION
+    ###################################################
     def main_events(self):
-        # self.win.update()
         pygame.display.update()
         self.sketch_menu()
-        # self.draw_text()
-
+        self.draw_text("Made by beomus", [WIDTH - 160, HEIGHT - 30],
+                        16, colors.ALICE, FONT)
+        self.draw_text("Sorting Algorithms Visualizer", [270, 300] , 30,
+                        colors.SPRINGGREEN, FONT)
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
                 pygame.quit()
                 sys.exit()
             pos = pygame.mouse.get_pos()
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.selection_button.isOver(pos):
-                    self.algorithms['SelectionSort'].run()
+                    _, time_elapsed = self.algorithms['SelectionSort'].run()
+                    self.draw_text('Algorithm: Selection Sort', [130, 100], 32,
+                                    colors.SPRINGGREEN, FONT)
+                    self.draw_text(f"Time elapsed: {round(time_elapsed, 2)}", [130, 140], 32,
+                                    colors.SPRINGGREEN, FONT)
                     self.state = 'aftermath'
                 elif self.bubble_button.isOver(pos):
-                    self.visualize()
-                    self.state = 'visualizing'
+                    _, time_elapsed = self.algorithms['BubbleSort'].run()
+                    self.draw_text('Algorithm: Bubble Sort', [130, 100], 32,
+                                    colors.SPRINGGREEN, FONT)
+                    self.draw_text(f"Time elapsed: {round(time_elapsed, 2)}", [130, 140], 32,
+                                    colors.SPRINGGREEN, FONT)
+                    self.state = 'aftermath'
                 elif self.insertion_button.isOver(pos):
-                    self.visualize()
-                    self.state = 'visualizing'
+                    _, time_elapsed = self.algorithms['InsertionSort'].run()
+                    self.draw_text('Algorithm: Insertion Sort', [130, 100], 32,
+                                    colors.SPRINGGREEN, FONT)
+                    self.draw_text(f"Time elapsed: {round(time_elapsed, 2)}", [130, 140], 32,
+                                    colors.SPRINGGREEN, FONT)
+                    self.state = 'aftermath'
                 elif self.merge_button.isOver(pos):
-                    self.visualize()
-                    self.state = 'visualizing'
+                    _, time_elapsed = self.algorithms['MergeSort'].run()
+                    self.draw_text('Algorithm: Merge Sort', [130, 100], 32,
+                                    colors.SPRINGGREEN, FONT)
+                    self.draw_text(f"Time elapsed: {round(time_elapsed, 2)}", [130, 140], 32,
+                                    colors.SPRINGGREEN, FONT)
+                    self.state = 'aftermath'
                 elif self.quick_button.isOver(pos):
-                    self.visualize()
-                    self.state = 'visualizing'
+                    _, time_elapsed = self.algorithms['QuickSort'].run()
+                    self.draw_text('Algorithm: Quick Sort', [130, 100], 32,
+                                    colors.SPRINGGREEN, FONT)
+                    self.draw_text(f"Time elapsed: {round(time_elapsed, 2)}", [130, 140], 32,
+                                    colors.SPRINGGREEN, FONT)
+                    self.state = 'aftermath'
             
-            # TODO: change button colors
             if event.type == pygame.MOUSEMOTION:
                 if self.selection_button.isOver(pos):
                     self.selection_button.color = colors.AQUAMARINE
@@ -150,9 +177,40 @@ class Visualizer:
                 elif self.quick_button.isOver(pos):
                     self.quick_button.color = colors.AQUAMARINE
                 else:
-                    self.set_buttons_color(colors.WHITE)
+                    self.set_buttons_color(colors.STEELBLUE)
 
-    # TODO: check if really necessary
+    ###################################################
+    # SECONDARY FUNCTION
+    ###################################################
+    def aftermath_events(self):
+        pygame.display.update()
+        self.draw_text("Made by beomus", [WIDTH - 160, HEIGHT - 30],
+                        16, colors.ALICE, FONT)
+        self.reset_button.text_color = colors.RED
+        self.reset_button.draw_button(colors.TAN)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+                pygame.quit()
+                sys.exit()
+            pos = pygame.mouse.get_pos()
+            
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.reset_button.isOver(pos):
+                    for algo in self.algorithms:
+                        self.algorithms[f'{algo}'].reset()
+                    self.state = 'main'
+
+            if event.type == pygame.MOUSEMOTION:
+                if self.reset_button.isOver(pos):
+                    self.reset_button.color = colors.AQUAMARINE
+                else:
+                    self.reset_button.color = colors.MINT
+
+    ###################################################
+    # DRAW TEXT ON THE WINDOW
+    ###################################################
     def draw_text(self, words, pos, size, color, font_name, center=False):
         font = pygame.font.SysFont(font_name, size)
         text = font.render(words, False, color)
@@ -162,69 +220,18 @@ class Visualizer:
             pos[1] = pos[1] - text_size[1] // 2
         self.win.blit(text, pos)
 
-    # TODO: write set_buttons_color method
+    ###################################################
+    # CHANGING ALL BUTTONS COLORS
+    ###################################################
     def set_buttons_color(self, color):
         self.selection_button.color = color
         self.bubble_button.color = color
         self.insertion_button.color = color
         self.merge_button.color = color
         self.quick_button.color = color
-
-
-    ###################################################
-    # VISUALISATION
-    ###################################################
-    def visualize(self, algorithm, swap1=None, swap2=None):
-        self.win.fill(pygame.Color("#a48be0"))
-        # self.draw_text(f'SAV: {algorithm.name} | {time.time() - algorithm.start_time} | Sorting...', 200, 28, colors.WHITE, FONT, center=True)
-        k = int(WIDTH / len(algorithm.array))
-        for i in range(len(algorithm.array)):
-            color = (80, 0, 255)
-            if swap1 == algorithm.array[i]:
-                color = (0, 255, 0)
-            elif swap2 == algorithm.array[i]:
-                color = (255, 0, 0)
-
-            pygame.draw.rect(self.win, color, (i * k, HEIGHT, k, -algorithm.array[i]))
-        pygame.display.update()
-
-    
-
-
-win = pygame.display.set_mode((WIDTH, HEIGHT))
-win.fill(pygame.Color("#a48be0"))
-
-
-def check_events():
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-
-
-
-
-
-def keep_open(algorithm, t, display=win):
-    pygame.display.set_caption(f'SAV: {algorithm.name} | {t} | Done!')
-    while True:
-        check_events()
-
-
-def main(args):
-    if len(args) < 2:
-        print("Select a sorting algorithm")
-    elif args[1] == "list":
-        print("Available algorithms:\n\t" + "\n\t".join(algorithms.keys()))
-        sys.exit(0)
-    else:
-        algorithm = algorithms[args[1]]
-        _, time_elapsed = algorithm.run()
-        keep_open(algorithm, time_elapsed)
-
+        self.reset_button.color = color
+ 
 
 if __name__ == '__main__':
-    # sys.argv.append('MergeSort')
-    # main(sys.argv)
     viz = Visualizer()
     viz.run()

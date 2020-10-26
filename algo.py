@@ -1,18 +1,29 @@
 import time
 import random
-from abc import ABCMeta, abstractmethod, ABC
+import pygame
 
+WIDTH = 1024
+HEIGHT = 512
 
-class Algorithm(metaclass=ABCMeta):
+class Algorithm:
     def __init__(self, name):
         self.name = name
         self.array = random.sample(range(512), 512)
         self.start_time = None
+        self.win = pygame.display.set_mode((WIDTH, HEIGHT))
 
     def update_display(self, swap1=None, swap2=None):
-        from visualizer import Visualizer
-        viz = Visualizer()
-        viz.visualize(self, swap1, swap2)
+        self.win.fill((0, 0, 0))
+        k = int(WIDTH / len(self.array))
+        for i in range(len(self.array)):
+            color = (0, 255, 127)
+            if swap1 == self.array[i]:
+                color = (0, 0, 255)
+            elif swap2 == self.array[i]:
+                color = (255, 0, 0)
+
+            pygame.draw.rect(self.win, color, (i * k, HEIGHT, k, - self.array[i]))
+        pygame.display.update()
 
     def run(self):
         self.start_time = time.time()
@@ -20,9 +31,9 @@ class Algorithm(metaclass=ABCMeta):
         time_elapsed = time.time() - self.start_time
         return self.array, time_elapsed
 
-    @abstractmethod
-    def algorithm(self):
-        raise TypeError(f'Algorithm.algorithm() has not been overwritten.')
+    def reset(self):
+        self.array = random.sample(range(512), 512)
+        self.start_time = None
 
 
 class SelectionSort(Algorithm):
